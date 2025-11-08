@@ -1,0 +1,123 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Mis Transacciones</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrarSesion()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  
+  <ion-toolbar>
+    <ion-searchbar 
+      [(ngModel)]="busqueda"
+      (ionInput)="onBuscar($event)"
+      placeholder="Buscar transacciones..."
+      animated
+    ></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- Balance Card -->
+  <div class="balance-card">
+    <div class="balance-header">
+      <ion-segment [(ngModel)]="periodo" (ionChange)="onCambiarPeriodo($event)">
+        <ion-segment-button value="dia">
+          <ion-label>Hoy</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="semana">
+          <ion-label>Semana</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="mes">
+          <ion-label>Mes</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="todo">
+          <ion-label>Todo</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <div class="balance-content">
+      <div class="balance-item ingresos">
+        <ion-icon name="arrow-down-circle"></ion-icon>
+        <div class="balance-info">
+          <span class="label">Ingresos</span>
+          <span class="amount">{{ formatearMonto(balance.totalIngresos) }}</span>
+        </div>
+      </div>
+
+      <div class="balance-item gastos">
+        <ion-icon name="arrow-up-circle"></ion-icon>
+        <div class="balance-info">
+          <span class="label">Gastos</span>
+          <span class="amount">{{ formatearMonto(balance.totalGastos) }}</span>
+        </div>
+      </div>
+
+      <div class="balance-item total" [class.negative]="balance.balance < 0">
+        <ion-icon name="wallet"></ion-icon>
+        <div class="balance-info">
+          <span class="label">Balance</span>
+          <span class="amount">{{ formatearMonto(balance.balance) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de Transacciones -->
+  <div class="transacciones-container">
+    <h2 class="section-title">
+      Historial de Transacciones
+      <ion-badge color="primary">{{ transaccionesFiltradas.length }}</ion-badge>
+    </h2>
+
+    <div *ngIf="transaccionesFiltradas.length === 0" class="empty-state">
+      <ion-icon name="receipt-outline"></ion-icon>
+      <h3>No hay transacciones</h3>
+      <p>Agrega tu primera transacción usando el botón +</p>
+    </div>
+
+    <ion-card *ngFor="let transaccion of transaccionesFiltradas" class="transaccion-card">
+      <ion-card-content>
+        <div class="transaccion-content">
+          <div class="transaccion-icon" [style.background-color]="getColorCategoria(transaccion.categoriaId)">
+            <ion-icon [name]="getIconoCategoria(transaccion.categoriaId)"></ion-icon>
+          </div>
+
+          <div class="transaccion-info">
+            <h3>{{ transaccion.descripcion }}</h3>
+            <p class="categoria">{{ transaccion.categoriaNombre }}</p>
+            <p class="fecha">{{ formatearFecha(transaccion.fecha) }}</p>
+          </div>
+
+          <div class="transaccion-monto">
+            <span 
+              class="amount" 
+              [class.ingreso]="transaccion.tipo === 'ingreso'"
+              [class.gasto]="transaccion.tipo === 'gasto'"
+            >
+              {{ transaccion.tipo === 'ingreso' ? '+' : '-' }}{{ formatearMonto(transaccion.monto) }}
+            </span>
+          </div>
+
+          <div class="transaccion-actions">
+            <ion-button fill="clear" size="small" (click)="editarTransaccion(transaccion)">
+              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="danger" (click)="eliminarTransaccion(transaccion)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Botón Flotante -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="abrirModalNuevaTransaccion()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

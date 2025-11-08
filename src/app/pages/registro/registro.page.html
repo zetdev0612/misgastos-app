@@ -1,0 +1,93 @@
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="registro-container">
+    <div class="info-section">
+      <div class="logo-container">
+        <ion-icon name="wallet-outline" class="logo-icon"></ion-icon>
+        <h1>MisGastos</h1>
+      </div>
+      <p class="description">
+        Únete a MisGastos y comienza a tomar el control de tus finanzas personales hoy mismo.
+      </p>
+    </div>
+
+    <div class="form-section">
+      <div class="form-card">
+        <h2>Crear Cuenta</h2>
+        
+        <form [formGroup]="registroForm" (ngSubmit)="onSubmit()">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="person-outline" slot="start"></ion-icon>
+            <ion-input
+              type="text"
+              placeholder="Nombre completo"
+              formControlName="nombreCompleto"
+            ></ion-input>
+          </ion-item>
+          <ion-text color="danger" *ngIf="registroForm.get('nombreCompleto')?.invalid && registroForm.get('nombreCompleto')?.touched">
+            <small class="error-text">Mínimo 3 caracteres</small>
+          </ion-text>
+
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="mail-outline" slot="start"></ion-icon>
+            <ion-input
+              type="email"
+              placeholder="Correo electrónico"
+              formControlName="email"
+            ></ion-input>
+          </ion-item>
+          <ion-text color="danger" *ngIf="registroForm.get('email')?.invalid && registroForm.get('email')?.touched">
+            <small class="error-text">Email inválido</small>
+          </ion-text>
+
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+            <ion-input
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="Contraseña"
+              formControlName="password"
+            ></ion-input>
+            <ion-button fill="clear" slot="end" (click)="togglePassword('password')">
+              <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <ion-text color="danger" *ngIf="registroForm.get('password')?.invalid && registroForm.get('password')?.touched">
+            <small class="error-text">Mínimo 6 caracteres</small>
+          </ion-text>
+
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+            <ion-input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              placeholder="Confirmar contraseña"
+              formControlName="confirmarPassword"
+            ></ion-input>
+            <ion-button fill="clear" slot="end" (click)="togglePassword('confirm')">
+              <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <ion-text color="danger" *ngIf="registroForm.get('confirmarPassword')?.hasError('passwordMismatch') && registroForm.get('confirmarPassword')?.touched">
+            <small class="error-text">Las contraseñas no coinciden</small>
+          </ion-text>
+
+          <div class="checkbox-container">
+            <ion-checkbox formControlName="aceptaTerminos"></ion-checkbox>
+            <ion-label>Acepto los términos y condiciones</ion-label>
+          </div>
+          <ion-text color="danger" *ngIf="registroForm.get('aceptaTerminos')?.invalid && registroForm.get('aceptaTerminos')?.touched">
+            <small class="error-text">Debes aceptar los términos</small>
+          </ion-text>
+
+          <ion-button expand="block" type="submit" class="registro-button">
+            Registrarse
+          </ion-button>
+
+          <div class="links-container">
+            <ion-button fill="clear" size="small" (click)="volverAlLogin()">
+              ¿Ya tienes cuenta? Inicia sesión
+            </ion-button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</ion-content>

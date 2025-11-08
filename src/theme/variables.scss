@@ -1,2 +1,105 @@
-// For information on how to create your own theme, please see:
-// http://ionicframework.com/docs/theming/
+/* src/theme/variables.scss */
+/* Paleta alineada con el diseño del login MisGastos */
+
+:root {
+  /** ===============================
+      COLORES PRINCIPALES
+  =============================== **/
+
+  /** Primary (azul-violeta moderno) **/
+  --ion-color-primary: #667eea;
+  --ion-color-primary-rgb: 102, 126, 234;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #5a6fce;
+  --ion-color-primary-tint: #758bec;
+
+  /** Secondary (púrpura suave, para acentos) **/
+  --ion-color-secondary: #764ba2;
+  --ion-color-secondary-rgb: 118, 75, 162;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #68428f;
+  --ion-color-secondary-tint: #8460ab;
+
+  /** Tertiary (azul brillante para énfasis) **/
+  --ion-color-tertiary: #5b9df9;
+  --ion-color-tertiary-rgb: 91, 157, 249;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #4f8bdc;
+  --ion-color-tertiary-tint: #6aabfa;
+
+  /** ===============================
+      ESTADOS DEL SISTEMA
+  =============================== **/
+  --ion-color-success: #10b981;
+  --ion-color-success-rgb: 16, 185, 129;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #0ea372;
+  --ion-color-success-tint: #28c593;
+
+  --ion-color-warning: #f59e0b;
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #d4890a;
+  --ion-color-warning-tint: #f7ad2e;
+
+  --ion-color-danger: #ef4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d23c3c;
+  --ion-color-danger-tint: #f15757;
+
+  /** ===============================
+      ESCALAS NEUTRAS
+  =============================== **/
+  --ion-color-dark: #1f2937;
+  --ion-color-dark-rgb: 31, 41, 55;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #1b2430;
+  --ion-color-dark-tint: #354050;
+
+  --ion-color-medium: #6b7280;
+  --ion-color-medium-rgb: 107, 114, 128;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #5e6470;
+  --ion-color-medium-tint: #7a808e;
+
+  --ion-color-light: #f3f4f6;
+  --ion-color-light-rgb: 243, 244, 246;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: #d6d7d9;
+  --ion-color-light-tint: #ffffff;
+
+  /** ===============================
+      COLORES PERSONALIZADOS
+  =============================== **/
+  --login-bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --login-card-bg: #ffffff;
+  --login-text-color: #1f2937;
+  --login-muted-text: #6b7280;
+  --login-border-radius: 12px;
+  --login-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* ===============================
+   MODO OSCURO (opcional)
+=============================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-color-primary: #758bec;
+    --ion-color-dark: #111827;
+    --ion-color-light: #1f2937;
+    --login-bg-gradient: linear-gradient(135deg, #4c55b0 0%, #5e3a8a 100%);
+    --login-card-bg: #1f2937;
+    --login-text-color: #f9fafb;
+    --login-muted-text: #9ca3af;
+  }
+}
