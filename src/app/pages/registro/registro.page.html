@@ -1,93 +1,75 @@
-<ion-content [fullscreen]="true" class="ion-padding">
-  <div class="registro-container">
-    <div class="info-section">
-      <div class="logo-container">
-        <ion-icon name="wallet-outline" class="logo-icon"></ion-icon>
-        <h1>MisGastos</h1>
-      </div>
-      <p class="description">
-        Únete a MisGastos y comienza a tomar el control de tus finanzas personales hoy mismo.
-      </p>
-    </div>
+<ion-content fullscreen class="registro-page">
+  <main class="container" role="main">
+    <section class="card" aria-labelledby="title-reg">
 
-    <div class="form-section">
-      <div class="form-card">
-        <h2>Crear Cuenta</h2>
-        
-        <form [formGroup]="registroForm" (ngSubmit)="onSubmit()">
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="person-outline" slot="start"></ion-icon>
-            <ion-input
-              type="text"
-              placeholder="Nombre completo"
-              formControlName="nombreCompleto"
-            ></ion-input>
-          </ion-item>
+      <!-- Left: branding/info -->
+      <aside class="left" aria-hidden="false">
+        <div class="brand">
+          <div class="logo">MG</div>
+          <h3>MisGastos</h3>
+        </div>
+        <p>Organiza tus finanzas personales de manera simple. Registra tus gastos y analiza tus hábitos desde cualquier dispositivo.</p>
+
+        <div class="promo" aria-hidden="true">📊 Visualiza tus gastos con claridad</div>
+      </aside>
+
+      <!-- Right: registration form -->
+      <div class="right" aria-labelledby="title-reg">
+        <h2 id="title-reg">Crear cuenta</h2>
+        <p class="sub">Regístrate para comenzar a controlar tus gastos</p>
+
+        <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="input-group" title="Nombre completo">
+            <div class="icon"><ion-icon name="person-outline"></ion-icon></div>
+            <input type="text" formControlName="nombreCompleto" placeholder="Nombre completo" aria-label="Nombre completo" required />
+          </div>
           <ion-text color="danger" *ngIf="registroForm.get('nombreCompleto')?.invalid && registroForm.get('nombreCompleto')?.touched">
             <small class="error-text">Mínimo 3 caracteres</small>
           </ion-text>
 
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="mail-outline" slot="start"></ion-icon>
-            <ion-input
-              type="email"
-              placeholder="Correo electrónico"
-              formControlName="email"
-            ></ion-input>
-          </ion-item>
+          <div class="input-group" title="Correo electrónico">
+            <div class="icon"><ion-icon name="mail-outline"></ion-icon></div>
+            <input type="email" formControlName="email" placeholder="Correo electrónico" aria-label="Correo electrónico" required />
+          </div>
           <ion-text color="danger" *ngIf="registroForm.get('email')?.invalid && registroForm.get('email')?.touched">
             <small class="error-text">Email inválido</small>
           </ion-text>
 
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
-            <ion-input
-              [type]="showPassword ? 'text' : 'password'"
-              placeholder="Contraseña"
-              formControlName="password"
-            ></ion-input>
-            <ion-button fill="clear" slot="end" (click)="togglePassword('password')">
+          <div class="input-group" title="Contraseña">
+            <div class="icon"><ion-icon name="lock-closed-outline"></ion-icon></div>
+            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Contraseña" aria-label="Contraseña" required />
+            <button type="button" class="icon-btn" (click)="togglePassword('password')">
               <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-            </ion-button>
-          </ion-item>
+            </button>
+          </div>
           <ion-text color="danger" *ngIf="registroForm.get('password')?.invalid && registroForm.get('password')?.touched">
             <small class="error-text">Mínimo 6 caracteres</small>
           </ion-text>
 
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
-            <ion-input
-              [type]="showConfirmPassword ? 'text' : 'password'"
-              placeholder="Confirmar contraseña"
-              formControlName="confirmarPassword"
-            ></ion-input>
-            <ion-button fill="clear" slot="end" (click)="togglePassword('confirm')">
+          <div class="input-group" title="Confirmar contraseña">
+            <div class="icon"><ion-icon name="lock-closed-outline"></ion-icon></div>
+            <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmarPassword" placeholder="Confirmar contraseña" aria-label="Confirmar contraseña" required />
+            <button type="button" class="icon-btn" (click)="togglePassword('confirm')">
               <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-            </ion-button>
-          </ion-item>
+            </button>
+          </div>
           <ion-text color="danger" *ngIf="registroForm.get('confirmarPassword')?.hasError('passwordMismatch') && registroForm.get('confirmarPassword')?.touched">
             <small class="error-text">Las contraseñas no coinciden</small>
           </ion-text>
 
-          <div class="checkbox-container">
-            <ion-checkbox formControlName="aceptaTerminos"></ion-checkbox>
-            <ion-label>Acepto los términos y condiciones</ion-label>
+          <div class="row-between">
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.95rem;color:#475569;">
+              <ion-checkbox slot="start" formControlName="aceptaTerminos"></ion-checkbox>
+              <span>Acepto términos</span>
+            </label>
+            <button type="button" class="link-btn" (click)="volverAlLogin()">¿Ya tienes cuenta?</button>
           </div>
-          <ion-text color="danger" *ngIf="registroForm.get('aceptaTerminos')?.invalid && registroForm.get('aceptaTerminos')?.touched">
-            <small class="error-text">Debes aceptar los términos</small>
-          </ion-text>
 
-          <ion-button expand="block" type="submit" class="registro-button">
-            Registrarse
-          </ion-button>
+          <button type="submit" class="btn">Registrarse</button>
 
-          <div class="links-container">
-            <ion-button fill="clear" size="small" (click)="volverAlLogin()">
-              ¿Ya tienes cuenta? Inicia sesión
-            </ion-button>
-          </div>
+          <div class="small">Al registrarte aceptas nuestras políticas.</div>
         </form>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </ion-content>
