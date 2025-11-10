@@ -72,7 +72,6 @@ La aplicación permite:
 - Filtrar por períodos (día, semana, mes, todo)
 - Buscar transacciones
 - Editar y eliminar movimientos
-- Gestionar perfil de usuario
 
 ## 💅 Diseño
 
