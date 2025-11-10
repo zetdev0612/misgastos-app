@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController, Platform } from '@ionic/angular';
 import { Auth } from '../../services/auth';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [IonicModule, ReactiveFormsModule, CommonModule],
 })
-export class RecuperarPasswordPage implements OnInit {
+export class RecuperarPasswordPage implements OnInit, AfterViewInit {
   recuperarForm!: FormGroup;
 
   constructor(
@@ -22,13 +22,27 @@ export class RecuperarPasswordPage implements OnInit {
     private authService: Auth,
     private router: Router,
     private alertController: AlertController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private platform: Platform,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     this.recuperarForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]]
     });
+  }
+
+  ngAfterViewInit() {
+    // Asegurar que los estilos se apliquen correctamente después de cargar la vista
+    setTimeout(() => {
+      try {
+        document.body.classList.add('page-loaded');
+        this.cdr.detectChanges();
+      } catch (e) {
+        // noop
+      }
+    }, 80);
   }
 
   async onSubmit() {
@@ -70,6 +84,17 @@ export class RecuperarPasswordPage implements OnInit {
   }
 
   volverAlLogin() {
-    this.router.navigate(['/login']);
+    // Navegación robusta de vuelta al login
+    (async () => {
+      try {
+        await new Promise(res => setTimeout(res, 50));
+        const result = await this.router.navigate(['/login'], { replaceUrl: true });
+        if (!result) {
+          window.location.href = '/login';
+        }
+      } catch (err) {
+        window.location.href = '/login';
+      }
+    })();
   }
 }

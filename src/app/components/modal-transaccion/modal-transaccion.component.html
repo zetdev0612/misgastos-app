@@ -29,8 +29,12 @@
       <ion-label position="stacked">Monto *</ion-label>
       <ion-input
         type="number"
-        placeholder="0"
+        placeholder="0.00"
+        inputmode="decimal"
+        min="0.01"
+        step="0.01"
         formControlName="monto"
+        (ionInput)="formatearMonto($event)"
       ></ion-input>
     </ion-item>
     <ion-text color="danger" *ngIf="transaccionForm.get('monto')?.invalid && transaccionForm.get('monto')?.touched">

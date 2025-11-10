@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController, Platform } from '@ionic/angular';
 import { Auth } from '../../services/auth';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [IonicModule, ReactiveFormsModule, CommonModule],
 })
-export class LoginPage implements OnInit {
+export class LoginPage implements OnInit, AfterViewInit {
   loginForm!: FormGroup;
   showPassword = false;
 
@@ -23,10 +23,15 @@ export class LoginPage implements OnInit {
     private authService: Auth,
     private router: Router,
     private alertController: AlertController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private platform: Platform,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    // Limpiar estado previo de navegación
+    document.body.classList.remove('page-loaded');
+    
     // Verificar si ya está autenticado
     if (this.authService.currentUserValue()) {
       this.router.navigate(['/home']);
@@ -39,6 +44,18 @@ export class LoginPage implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
       recordar: [!!recordarEmail]
     });
+  }
+
+  ngAfterViewInit() {
+    // Asegurar que los estilos se apliquen correctamente después de cargar la vista
+    setTimeout(() => {
+      try {
+        document.body.classList.add('page-loaded');
+        this.cdr.detectChanges();
+      } catch (e) {
+        // noop
+      }
+    }, 80);
   }
 
   async onSubmit() {
@@ -101,7 +118,29 @@ export class LoginPage implements OnInit {
   }
 
   irARegistro() {
-    this.router.navigate(['/registro']);
+    // Intentar navegación normal con fallback
+    (async () => {
+      try {
+        // Pequeño delay para permitir que otras operaciones pendientes terminen
+        await new Promise(res => setTimeout(res, 50));
+
+        // Limpiar estado anterior
+        window.location.hash = '';
+        await new Promise(res => setTimeout(res, 50));
+
+        // Intentar navegación con replaceUrl
+        const result = await this.router.navigate(['/registro'], { replaceUrl: true });
+
+        // Si la navegación falla o no se aplica correctamente, usar fallback
+        if (!result) {
+          console.log('Navegación a /registro fallida, usando fallback');
+          window.location.href = '/registro';
+        }
+      } catch (err) {
+        console.error('Error al navegar a registro:', err);
+        window.location.href = '/registro';
+      }
+    })();
   }
 
   irARecuperar() {

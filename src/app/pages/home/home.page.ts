@@ -232,9 +232,28 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
         },
         {
           text: 'Cerrar Sesión',
-          handler: () => {
+          handler: async () => {
             this.authService.logout();
-            this.router.navigate(['/login']);
+            
+            // Navegación robusta con fallback
+            try {
+              // Limpiar estado y esperar un poco
+              document.body.classList.remove('page-loaded');
+              window.location.hash = '';
+              await new Promise(res => setTimeout(res, 100));
+              
+              // Intentar navegación normal
+              const result = await this.router.navigate(['/login'], { replaceUrl: true });
+              
+              // Si falla, usar fallback
+              if (!result) {
+                console.log('Navegación a login fallida, usando fallback');
+                window.location.href = '/login';
+              }
+            } catch (err) {
+              console.error('Error al cerrar sesión:', err);
+              window.location.href = '/login';
+            }
           }
         }
       ]
@@ -279,6 +298,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
       minimumFractionDigits: 0
     }).format(monto);
   }
+  
   private async mostrarToast(mensaje: string) {
     const toast = await this.toastController.create({
       message: mensaje,

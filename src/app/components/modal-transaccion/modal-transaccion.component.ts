@@ -55,6 +55,30 @@ export class ModalTransaccionComponent implements OnInit {
     });
   }
 
+  //recibe un evento ionInput y formatea el monto con separador de miles y máximo 2 decimales
+  formatearMonto(event: any) {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+
+    // Eliminar caracteres no numéricos excepto el punto decimal
+    valor = valor.replace(/[^0-9.]/g, '');
+
+    // Asegurar que solo haya un punto decimal
+    const partes = valor.split('.');
+    if (partes.length > 2) {
+      valor = partes[0] + '.' + partes.slice(1).join('');
+    }
+
+    // Limitar a 2 decimales
+    if (partes.length === 2) {
+      valor = partes[0] + '.' + partes[1].substring(0, 2);
+    }
+
+    // Actualizar el valor del input y del formulario
+    input.value = valor;
+    this.transaccionForm.patchValue({ monto: parseFloat(valor) || 0 });
+  }
+
   onTipoChange(event: any) {
     const tipo = event.detail.value;
     this.filtrarCategorias(tipo);
