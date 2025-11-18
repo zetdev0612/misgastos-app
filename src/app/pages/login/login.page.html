@@ -28,6 +28,8 @@
               type="email"
               placeholder="Correo electrónico"
               formControlName="email"
+              clearInput
+              inputmode="email"
             ></ion-input>
           </ion-item>
           <ion-text color="danger" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
@@ -40,8 +42,10 @@
               [type]="showPassword ? 'text' : 'password'"
               placeholder="Contraseña"
               formControlName="password"
+              clearInput
+              [attr.aria-label]="'Contraseña'"
             ></ion-input>
-            <ion-button fill="clear" slot="end" (click)="togglePassword()">
+            <ion-button fill="clear" slot="end" (click)="togglePassword()" type="button">
               <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </ion-button>
           </ion-item>
@@ -54,13 +58,13 @@
             <ion-label>Recordarme</ion-label>
           </div>
 
-          <ion-button expand="block" type="submit" class="login-button">
-            Iniciar sesión
+          <ion-button expand="block" type="submit" class="login-button" [disabled]="isLoading">
+            {{ isLoading ? 'Iniciando sesión...' : 'Iniciar sesión' }}
           </ion-button>
 
           <div class="register">
             ¿No tienes cuenta?
-            <ion-button fill="clear" size="small" (click)="irARegistro()">
+            <ion-button fill="clear" size="small" (click)="irARegistro()" type="button">
               Regístrate
             </ion-button>
           </div>
