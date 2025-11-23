@@ -10,14 +10,13 @@ import { Balance } from '../../models/balance.model';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BalanceCardComponent } from '../../components/balance-card/balance-card.component';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, BalanceCardComponent],
+  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   transacciones: Transaccion[] = [];

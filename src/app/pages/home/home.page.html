@@ -19,12 +19,51 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <!-- Balance Card Component -->
-  <app-balance-card 
-    [balance]="balance"
-    [periodo]="periodo"
-    (periodChanged)="onCambiarPeriodo($event)"
-  ></app-balance-card>
+  <!-- Balance Card -->
+  <div class="balance-card">
+    <div class="balance-header">
+      <ion-segment [(ngModel)]="periodo" (ionChange)="onCambiarPeriodo($event)">
+        <ion-segment-button value="dia">
+          <ion-label>Hoy</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="semana">
+          <ion-label>Semana</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="mes">
+          <ion-label>Mes</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="todo">
+          <ion-label>Todo</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <div class="balance-content">
+      <div class="balance-item ingresos">
+        <ion-icon name="arrow-down-circle"></ion-icon>
+        <div class="balance-info">
+          <span class="label">Ingresos</span>
+          <span class="amount">{{ formatearMonto(balance.totalIngresos) }}</span>
+        </div>
+      </div>
+
+      <div class="balance-item gastos">
+        <ion-icon name="arrow-up-circle"></ion-icon>
+        <div class="balance-info">
+          <span class="label">Gastos</span>
+          <span class="amount">{{ formatearMonto(balance.totalGastos) }}</span>
+        </div>
+      </div>
+
+      <div class="balance-item total" [class.negative]="balance.balance < 0">
+        <ion-icon name="wallet"></ion-icon>
+        <div class="balance-info">
+          <span class="label">Balance</span>
+          <span class="amount">{{ formatearMonto(balance.balance) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Lista de Transacciones -->
   <div class="transacciones-container">
