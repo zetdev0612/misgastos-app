@@ -1,75 +1,58 @@
-<ion-content [fullscreen]="true" class="login-content">
-  <div class="login-container">
-    <!-- Sección informativa -->
-    <div class="login-info">
-      <div class="info-header">
-        <ion-icon name="wallet-outline" class="logo-icon"></ion-icon>
-        <h1>MisGastos</h1>
-      </div>
-      <p>
-        Organiza tus finanzas personales de manera simple.  
-        Registra tus gastos y analiza tus hábitos desde cualquier dispositivo.
-      </p>
-      <div class="promo" aria-hidden="true">
-        📊 Visualiza tus gastos con claridad
-      </div>
-    </div>
+<ion-content fullscreen class="login-page">
+  <main class="container" role="main">
+    <section class="card" aria-labelledby="title-login">
 
-    <!-- Sección del formulario -->
-    <div class="login-form">
-      <div class="form-card">
-        <h2>Iniciar sesión</h2>
-        <p>Accede a tu cuenta para controlar tus finanzas</p>
+      <!-- Left: branding/info -->
+      <aside class="left" aria-hidden="false">
+        <div class="brand">
+          <div class="logo">MG</div>
+          <h3>MisGastos</h3>
+        </div>
+        <p>Organiza tus finanzas personales de manera simple. Registra tus gastos y analiza tus hábitos desde cualquier dispositivo.</p>
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="mail-outline" slot="start"></ion-icon>
-            <ion-input
-              type="email"
-              placeholder="Correo electrónico"
-              formControlName="email"
-              clearInput
-              inputmode="email"
-            ></ion-input>
-          </ion-item>
+        <div class="promo" aria-hidden="true">📊 Visualiza tus gastos con claridad</div>
+      </aside>
+
+      <!-- Right: login form -->
+      <div class="right" aria-labelledby="title-login">
+        <h2 id="title-login">Iniciar sesión</h2>
+        <p class="sub">Accede a tu cuenta para controlar tus finanzas</p>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="input-group" title="Correo electrónico">
+            <div class="icon"><ion-icon name="mail-outline"></ion-icon></div>
+            <input type="email" formControlName="email" placeholder="Correo electrónico" aria-label="Correo electrónico" inputmode="email" />
+          </div>
           <ion-text color="danger" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
             <small class="error-text">Correo inválido</small>
           </ion-text>
 
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
-            <ion-input
-              [type]="showPassword ? 'text' : 'password'"
-              placeholder="Contraseña"
-              formControlName="password"
-              clearInput
-              [attr.aria-label]="'Contraseña'"
-            ></ion-input>
-            <ion-button fill="clear" slot="end" (click)="togglePassword()" type="button">
+          <div class="input-group" title="Contraseña">
+            <div class="icon"><ion-icon name="lock-closed-outline"></ion-icon></div>
+            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Contraseña" aria-label="Contraseña" />
+            <button type="button" class="icon-btn" (click)="togglePassword()">
               <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-            </ion-button>
-          </ion-item>
+            </button>
+          </div>
           <ion-text color="danger" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
             <small class="error-text">Mínimo 6 caracteres</small>
           </ion-text>
 
-          <div class="actions">
-            <ion-checkbox formControlName="recordar"></ion-checkbox>
-            <ion-label>Recordarme</ion-label>
+          <div class="row-between">
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.95rem;color:#475569;">
+              <ion-checkbox slot="start" formControlName="recordar"></ion-checkbox>
+              <span>Recordarme</span>
+            </label>
+            <button type="button" class="link-btn" (click)="irARegistro()">¿No tienes cuenta?</button>
           </div>
 
-          <ion-button expand="block" type="submit" class="login-button" [disabled]="isLoading">
+          <button type="submit" class="btn" [disabled]="isLoading">
             {{ isLoading ? 'Iniciando sesión...' : 'Iniciar sesión' }}
-          </ion-button>
+          </button>
 
-          <div class="register">
-            ¿No tienes cuenta?
-            <ion-button fill="clear" size="small" (click)="irARegistro()" type="button">
-              Regístrate
-            </ion-button>
-          </div>
+          <div class="small">Ingresa tu email y contraseña para acceder.</div>
         </form>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </ion-content>

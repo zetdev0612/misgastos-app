@@ -7,16 +7,49 @@ import { TransaccionService } from '../../services/transaccion';
 import { CategoriaService } from '../../services/categoria';
 import { Transaccion } from '../../models/transaccion.model';
 import { Balance } from '../../models/balance.model';
-import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import {
+  IonContent,
+  IonHeader,
+  IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonLabel,
+  IonCard,
+  IonCardContent,
+  IonBadge
+} from '@ionic/angular/standalone';
+import { IonButton, IonButtons, IonTitle, IonToolbar } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonContent,
+    IonHeader,
+    IonTitle,
+    IonToolbar,
+    IonSegment,
+    IonSegmentButton,
+    IonButtons,
+    IonButton,
+    IonSearchbar,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonCard,
+    IonLabel,
+    IonCardContent,
+    IonBadge
+  ],
 })
 export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   transacciones: Transaccion[] = [];
@@ -24,7 +57,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   balance: Balance = { totalIngresos: 0, totalGastos: 0, balance: 0 };
   busqueda: string = '';
   periodo: 'dia' | 'semana' | 'mes' | 'todo' = 'todo';
-  
+
   private subscriptions: Subscription[] = [];
   private viewInitialized = false;
 
@@ -44,7 +77,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     console.log('HomePage: ngOnInit iniciado');
-    
+
     // Registrar cuando la plataforma está lista
     const readySub = this.platform.ready().then(() => {
       console.log('Platform ready');
@@ -55,27 +88,29 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
       console.log('App resumed');
       this.cargarTransacciones();
     });
-    
-    const sub = this.transaccionService.transacciones.subscribe(transacciones => {
-      console.log('HomePage: Actualizando transacciones');
-      this.transacciones = transacciones.sort((a, b) => 
-        new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-      );
-      this.aplicarFiltros();
-      this.actualizarBalance();
-      
-      if (this.viewInitialized) {
-        this.cdr.detectChanges();
+
+    const sub = this.transaccionService.transacciones.subscribe(
+      (transacciones) => {
+        console.log('HomePage: Actualizando transacciones');
+        this.transacciones = transacciones.sort(
+          (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+        );
+        this.aplicarFiltros();
+        this.actualizarBalance();
+
+        if (this.viewInitialized) {
+          this.cdr.detectChanges();
+        }
       }
-    });
-    
+    );
+
     this.subscriptions.push(sub, resumeSub);
   }
 
   ngAfterViewInit() {
     console.log('HomePage: ngAfterViewInit');
     this.viewInitialized = true;
-    
+
     // Asegurar que los estilos se apliquen después de la vista
     setTimeout(() => {
       document.body.classList.add('page-loaded');
@@ -84,7 +119,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
 
   cargarTransacciones() {
@@ -99,9 +134,10 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     // Filtro por búsqueda
     if (this.busqueda) {
       const busquedaLower = this.busqueda.toLowerCase();
-      resultado = resultado.filter(t =>
-        t.descripcion.toLowerCase().includes(busquedaLower) ||
-        t.categoriaNombre?.toLowerCase().includes(busquedaLower)
+      resultado = resultado.filter(
+        (t) =>
+          t.descripcion.toLowerCase().includes(busquedaLower) ||
+          t.categoriaNombre?.toLowerCase().includes(busquedaLower)
       );
     }
 
@@ -122,7 +158,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
           break;
       }
 
-      resultado = resultado.filter(t => new Date(t.fecha) >= fechaInicio);
+      resultado = resultado.filter((t) => new Date(t.fecha) >= fechaInicio);
     }
 
     this.transaccionesFiltradas = resultado;
@@ -146,10 +182,12 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async abrirModalNuevaTransaccion() {
-    const { ModalTransaccionComponent } = await import('../../components/modal-transaccion/modal-transaccion.component');
+    const { ModalTransaccionComponent } = await import(
+      '../../components/modal-transaccion/modal-transaccion.component'
+    );
     const modal = await this.modalController.create({
       component: ModalTransaccionComponent,
-      cssClass: 'modal-transaccion'
+      cssClass: 'modal-transaccion',
     });
 
     await modal.present();
@@ -162,31 +200,35 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           this.mostrarError('Error al agregar transacción');
-        }
+        },
       });
     }
   }
 
   async editarTransaccion(transaccion: Transaccion) {
-    const { ModalTransaccionComponent } = await import('../../components/modal-transaccion/modal-transaccion.component');
+    const { ModalTransaccionComponent } = await import(
+      '../../components/modal-transaccion/modal-transaccion.component'
+    );
     const modal = await this.modalController.create({
       component: ModalTransaccionComponent,
       componentProps: { transaccion },
-      cssClass: 'modal-transaccion'
+      cssClass: 'modal-transaccion',
     });
 
     await modal.present();
 
     const { data } = await modal.onWillDismiss();
     if (data?.transaccion && transaccion.id) {
-      this.transaccionService.editarTransaccion(transaccion.id, data.transaccion).subscribe({
-        next: () => {
-          this.mostrarToast('Transacción actualizada exitosamente');
-        },
-        error: () => {
-          this.mostrarError('Error al actualizar transacción');
-        }
-      });
+      this.transaccionService
+        .editarTransaccion(transaccion.id, data.transaccion)
+        .subscribe({
+          next: () => {
+            this.mostrarToast('Transacción actualizada exitosamente');
+          },
+          error: () => {
+            this.mostrarError('Error al actualizar transacción');
+          },
+        });
     }
   }
 
@@ -197,25 +239,27 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
       buttons: [
         {
           text: 'Cancelar',
-          role: 'cancel'
+          role: 'cancel',
         },
         {
           text: 'Eliminar',
           role: 'destructive',
           handler: () => {
             if (transaccion.id) {
-              this.transaccionService.eliminarTransaccion(transaccion.id).subscribe({
-                next: () => {
-                  this.mostrarToast('Transacción eliminada');
-                },
-                error: () => {
-                  this.mostrarError('Error al eliminar transacción');
-                }
-              });
+              this.transaccionService
+                .eliminarTransaccion(transaccion.id)
+                .subscribe({
+                  next: () => {
+                    this.mostrarToast('Transacción eliminada');
+                  },
+                  error: () => {
+                    this.mostrarError('Error al eliminar transacción');
+                  },
+                });
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     await alert.present();
@@ -228,23 +272,25 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
       buttons: [
         {
           text: 'Cancelar',
-          role: 'cancel'
+          role: 'cancel',
         },
         {
           text: 'Cerrar Sesión',
           handler: async () => {
             this.authService.logout();
-            
+
             // Navegación robusta con fallback
             try {
               // Limpiar estado y esperar un poco
               document.body.classList.remove('page-loaded');
               window.location.hash = '';
-              await new Promise(res => setTimeout(res, 100));
-              
+              await new Promise((res) => setTimeout(res, 100));
+
               // Intentar navegación normal
-              const result = await this.router.navigate(['/login'], { replaceUrl: true });
-              
+              const result = await this.router.navigate(['/login'], {
+                replaceUrl: true,
+              });
+
               // Si falla, usar fallback
               if (!result) {
                 console.log('Navegación a login fallida, usando fallback');
@@ -254,9 +300,9 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
               console.error('Error al cerrar sesión:', err);
               window.location.href = '/login';
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     await alert.present();
@@ -264,12 +310,16 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
   getIconoCategoria(categoriaId: string): string {
     const categoria: any = this.categoriaService.getCategoriaById(categoriaId);
-    return (categoria && typeof categoria === 'object' && 'icono' in categoria) ? categoria.icono : 'pricetag';
+    return categoria && typeof categoria === 'object' && 'icono' in categoria
+      ? categoria.icono
+      : 'pricetag';
   }
 
   getColorCategoria(categoriaId: string): string {
     const categoria: any = this.categoriaService.getCategoriaById(categoriaId);
-    return (categoria && typeof categoria === 'object' && 'color' in categoria) ? categoria.color : '#999999';
+    return categoria && typeof categoria === 'object' && 'color' in categoria
+      ? categoria.color
+      : '#999999';
   }
 
   formatearFecha(fecha: Date): string {
@@ -283,10 +333,10 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     } else if (fechaObj.toDateString() === ayer.toDateString()) {
       return 'Ayer';
     } else {
-      return fechaObj.toLocaleDateString('es-ES', { 
-        day: '2-digit', 
-        month: 'short', 
-        year: 'numeric' 
+      return fechaObj.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
       });
     }
   }
@@ -295,16 +345,16 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(monto);
   }
-  
+
   private async mostrarToast(mensaje: string) {
     const toast = await this.toastController.create({
       message: mensaje,
       duration: 2000,
       position: 'top',
-      cssClass: 'toast-success'
+      cssClass: 'toast-success',
     });
     await toast.present();
   }
@@ -313,7 +363,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     const alert = await this.alertController.create({
       header: 'Error',
       message: mensaje,
-      buttons: ['OK']
+      buttons: ['OK'],
     });
     await alert.present();
   }

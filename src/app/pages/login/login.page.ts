@@ -83,11 +83,7 @@ export class LoginPage implements OnInit, AfterViewInit {
     }
 
     this.isLoading = true;
-    const loading = await this.loadingController.create({
-      message: 'Iniciando sesión...',
-      duration: 5000
-    });
-    await loading.present();
+    this.cdr.markForCheck();
 
     const { email, password, recordar } = this.loginForm.value;
     console.log('Intentando login con:', email);
@@ -95,8 +91,8 @@ export class LoginPage implements OnInit, AfterViewInit {
     this.authService.login(email, password, recordar).subscribe({
       next: async () => {
         console.log('Login exitoso');
-        await loading.dismiss();
         this.isLoading = false;
+        this.cdr.markForCheck();
         
         try {
           // Limpiamos cualquier estado anterior
@@ -123,8 +119,8 @@ export class LoginPage implements OnInit, AfterViewInit {
       },
       error: async (error) => {
         console.error('Error en login:', error);
-        await loading.dismiss();
         this.isLoading = false;
+        this.cdr.markForCheck();
         const alert = await this.alertController.create({
           header: 'Error',
           message: error.message || 'Usuario o contraseña incorrectos',
