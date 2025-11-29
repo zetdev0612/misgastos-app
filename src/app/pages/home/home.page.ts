@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit } from '
 import { Router } from '@angular/router';
 import { AlertController, ModalController, ToastController, Platform } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Auth } from '../../services/auth';
 import { TransaccionService } from '../../services/transaccion';
 import { CategoriaService } from '../../services/categoria';
@@ -89,20 +90,35 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
       this.cargarTransacciones();
     });
 
-    const sub = this.transaccionService.transacciones.subscribe(
-      (transacciones) => {
-        console.log('HomePage: Actualizando transacciones');
-        this.transacciones = transacciones.sort(
-          (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-        );
-        this.aplicarFiltros();
-        this.actualizarBalance();
+    // Suscribirse al observable de transacciones filtrando por usuario
+    const sub = this.transaccionService.transacciones
+      .pipe(
+        map((transacciones) => {
+          // Filtrar solo las transacciones del usuario actual
+          const usuarioId = this.authService.getCurrentUserId();
+          if (!usuarioId) {
+            console.warn('No hay usuario autenticado en HomePage');
+            return [];
+          }
+          const filtradas = transacciones.filter(t => t.usuarioId === usuarioId);
+          console.log(`HomePage: Recibidas ${transacciones.length} transacciones, filtradas a ${filtradas.length} para usuario ${usuarioId}`);
+          return filtradas;
+        })
+      )
+      .subscribe(
+        (transacciones) => {
+          console.log('HomePage: Actualizando transacciones');
+          this.transacciones = transacciones.sort(
+            (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+          );
+          this.aplicarFiltros();
+          this.actualizarBalance();
 
-        if (this.viewInitialized) {
-          this.cdr.detectChanges();
+          if (this.viewInitialized) {
+            this.cdr.detectChanges();
+          }
         }
-      }
-    );
+      );
 
     this.subscriptions.push(sub, resumeSub);
   }

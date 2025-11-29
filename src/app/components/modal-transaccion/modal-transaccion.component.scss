@@ -45,7 +45,7 @@ ion-item {
     margin-bottom: 0.5rem;
   }
 
-  ion-input, ion-select, ion-datetime {
+  ion-input, ion-select{
     --padding-start: 0;
     font-size: 0.95rem;
     --placeholder-color: #94a3b8;
@@ -101,9 +101,5 @@ ion-item {
 @media (max-width: 576px) {
   .buttons-container {
     grid-template-columns: 1fr;
-  }
-
-  ion-datetime {
-    width: 100%;
   }
 }

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController, Platform } from '@ionic/angular';
 import { Auth } from '../../services/auth';
+import { TransaccionService } from '../../services/transaccion';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -22,6 +23,7 @@ export class LoginPage implements OnInit, AfterViewInit {
   constructor(
     private formBuilder: FormBuilder,
     private authService: Auth,
+    private transaccionService: TransaccionService,
     private router: Router,
     private alertController: AlertController,
     private loadingController: LoadingController,
@@ -93,6 +95,10 @@ export class LoginPage implements OnInit, AfterViewInit {
         console.log('Login exitoso');
         this.isLoading = false;
         this.cdr.markForCheck();
+        
+        // Refrescar las transacciones después del login
+        console.log('Refrescando transacciones para el usuario autenticado');
+        this.transaccionService.refrescarTransacciones();
         
         try {
           // Limpiamos cualquier estado anterior

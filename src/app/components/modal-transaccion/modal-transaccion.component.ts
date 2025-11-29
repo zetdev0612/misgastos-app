@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { CategoriaService } from '../../services/categoria';
@@ -18,10 +18,7 @@ import {
   IonInput,
   IonText,
   IonSelect,
-  IonSelectOption,
-  IonDatetimeButton,
-  IonModal,
-  IonDatetime
+  IonSelectOption
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -47,14 +44,11 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
     IonInput,
     IonText,
     IonSelect,
-    IonSelectOption,
-    IonDatetimeButton,
-    IonModal,
-    IonDatetime
+    IonSelectOption
   ],
 })
-export class ModalTransaccionComponent implements OnInit {
-  @Input() transaccion?: Transaccion;
+export class ModalTransaccionComponent {
+  transaccion?: Transaccion;
   
   transaccionForm!: FormGroup;
   categorias: Categoria[] = [];
