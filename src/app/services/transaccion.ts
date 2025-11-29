@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Transaccion } from '../models/transaccion.model';
 import { Balance } from '../models/balance.model';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { Auth } from './auth';
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +11,7 @@ export class TransaccionService {
   private _transacciones = new BehaviorSubject<Transaccion[]>([]);
   transacciones = this._transacciones.asObservable();
 
-  constructor() {
+  constructor(private authService: Auth) {
     // Cargar transacciones desde localStorage si existen
     const saved = localStorage.getItem('transacciones');
     if (saved) {
@@ -33,21 +34,64 @@ export class TransaccionService {
     }
   }
 
+  // Método para refrescar las transacciones cuando un usuario inicia sesión
+  refrescarTransacciones() {
+    const transactionsData = localStorage.getItem('transacciones');
+    if (transactionsData) {
+      try {
+        const parsed = JSON.parse(transactionsData) as Transaccion[];
+        const restored = parsed.map(t => ({ ...t, fecha: new Date(t.fecha) }));
+        this._transacciones.next(restored);
+        console.log('Transacciones refrescadas:', restored.length);
+      } catch (e) {
+        console.warn('Error al refrescar transacciones:', e);
+      }
+    }
+  }
+
   getTransacciones(): Transaccion[] {
+    // Retornar solo las transacciones del usuario actual
+    const usuarioId = this.authService.getCurrentUserId();
+    const todas = this._transacciones.getValue();
+    
+    if (!usuarioId) {
+      console.warn('No hay usuario autenticado. Retornando array vacío');
+      return [];
+    }
+    
+    // Filtrar transacciones por usuarioId, considerando que algunas transacciones antiguas
+    // pueden no tener usuarioId definido (compatibilidad hacia atrás)
+    const filtradas = todas.filter(t => {
+      // Si la transacción tiene usuarioId, debe coincidir
+      if (t.usuarioId) {
+        return t.usuarioId === usuarioId;
+      }
+      // Las transacciones sin usuarioId se ignoran (son de otros usuarios o datos corruptos)
+      return false;
+    });
+    
+    console.log(`TransaccionService: Encontradas ${filtradas.length} transacciones para usuario ${usuarioId}`);
+    return filtradas;
+  }
+
+  getTodasLasTransacciones(): Transaccion[] {
+    // Método para obtener todas sin filtrar por usuario (útil para admin)
     return this._transacciones.getValue();
   }
 
   agregarTransaccion(transaccion: Transaccion): Observable<Transaccion> {
     const id = transaccion.id ?? Date.now().toString();
-    const nueva: Transaccion = { ...transaccion, id };
-    const actuales = [nueva, ...this.getTransacciones()];
+    const usuarioId = this.authService.getCurrentUserId() || undefined;
+    const nueva: Transaccion = { ...transaccion, id, usuarioId };
+    // Usar getTodasLasTransacciones para mantener todas las transacciones globales
+    const actuales = [nueva, ...this.getTodasLasTransacciones()];
     this._transacciones.next(actuales);
     this.persist();
     return of(nueva);
   }
 
   editarTransaccion(id: string, data: Partial<Transaccion>): Observable<Transaccion> {
-    const actuales = [...this.getTransacciones()];
+    const actuales = [...this.getTodasLasTransacciones()];
     const idx = actuales.findIndex(t => t.id === id);
     if (idx === -1) {
       return throwError(() => new Error('Transacción no encontrada'));
@@ -66,7 +110,7 @@ export class TransaccionService {
   }
 
   eliminarTransaccion(id: string): Observable<void> {
-    const actuales = this.getTransacciones().filter(t => t.id !== id);
+    const actuales = this.getTodasLasTransacciones().filter(t => t.id !== id);
     this._transacciones.next(actuales);
     this.persist();
     return of(void 0);

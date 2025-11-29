@@ -1,10 +1,25 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { CategoriaService } from '../../services/categoria';
 import { Transaccion } from '../../models/transaccion.model';
 import { Categoria } from '../../models/categoria.model';
-import { IonicModule } from '@ionic/angular';
+// Importes standalone de Ionic (remplaza IonicModule)
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  IonButton,
+  IonIcon,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonText,
+  IonSelect,
+  IonSelectOption
+} from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
@@ -13,10 +28,27 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
   templateUrl: './modal-transaccion.component.html',
   styleUrls: ['./modal-transaccion.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonButton,
+    IonIcon,
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonText,
+    IonSelect,
+    IonSelectOption
+  ],
 })
-export class ModalTransaccionComponent implements OnInit {
-  @Input() transaccion?: Transaccion;
+export class ModalTransaccionComponent {
+  transaccion?: Transaccion;
   
   transaccionForm!: FormGroup;
   categorias: Categoria[] = [];
