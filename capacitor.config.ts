@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'MisGastos',
   webDir: 'www',
   server: {
-    cleartext: true
+    cleartext: true,
+    androidScheme : 'https'
   }
 };
 
