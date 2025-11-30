@@ -159,18 +159,22 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
     // Filtro por periodo
     if (this.periodo !== 'todo') {
-      const ahora = new Date();
       let fechaInicio: Date;
 
       switch (this.periodo) {
         case 'dia':
-          fechaInicio = new Date(ahora.setHours(0, 0, 0, 0));
+          fechaInicio = new Date();
+          fechaInicio.setHours(0, 0, 0, 0);
           break;
         case 'semana':
-          fechaInicio = new Date(ahora.setDate(ahora.getDate() - 7));
+          fechaInicio = new Date();
+          fechaInicio.setDate(fechaInicio.getDate() - 7);
+          fechaInicio.setHours(0, 0, 0, 0);
           break;
         case 'mes':
-          fechaInicio = new Date(ahora.setMonth(ahora.getMonth() - 1));
+          fechaInicio = new Date();
+          fechaInicio.setMonth(fechaInicio.getMonth() - 1);
+          fechaInicio.setHours(0, 0, 0, 0);
           break;
       }
 

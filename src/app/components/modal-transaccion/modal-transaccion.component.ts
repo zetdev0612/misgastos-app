@@ -66,9 +66,18 @@ export class ModalTransaccionComponent {
     this.esEdicion = !!this.transaccion;
     this.categorias = this.categoriaService.getCategorias();
     
+    // Convertir fecha a formato YYYY-MM-DD para el input type="date"
+    const formatearFecha = (fecha: any): string => {
+      const date = new Date(fecha);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     const fechaActual = this.transaccion?.fecha 
-      ? new Date(this.transaccion.fecha).toISOString() 
-      : new Date().toISOString();
+      ? formatearFecha(this.transaccion.fecha)
+      : formatearFecha(new Date());
 
     this.transaccionForm = this.formBuilder.group({
       descripcion: [this.transaccion?.descripcion || '', [Validators.required, Validators.minLength(3)]],
@@ -133,9 +142,14 @@ export class ModalTransaccionComponent {
 
   guardar() {
     if (this.transaccionForm.valid) {
+      // Convertir string YYYY-MM-DD a Date sin problemas de timezone
+      const fechaStr = this.transaccionForm.value.fecha;
+      const [year, month, day] = fechaStr.split('-').map(Number);
+      const fecha = new Date(year, month - 1, day);
+
       const transaccion: Transaccion = {
         ...this.transaccionForm.value,
-        fecha: new Date(this.transaccionForm.value.fecha)
+        fecha
       };
 
       this.modalController.dismiss({
