@@ -18,6 +18,7 @@ export class ResetPasswordPage implements OnInit, AfterViewInit {
   resetForm!: FormGroup;
   showPassword = false;
   showConfirmPassword = false;
+  isSubmitting = false;
   email: string = '';
   token: string = '';
   tokenValido = false;
@@ -85,46 +86,70 @@ export class ResetPasswordPage implements OnInit, AfterViewInit {
   }
 
   async onSubmit() {
+    console.log('[ResetPasswordPage.onSubmit] Iniciando, tokenValido:', this.tokenValido);
+    
     if (!this.tokenValido) {
-      await this.mostrarErrorYRedirigir('Enlace inválido');
+      await this.mostrarErrorYRedirigir('Enlace inválido o expirado');
       return;
     }
 
     if (this.resetForm.valid) {
-      const loading = await this.loadingController.create({
-        message: 'Actualizando contraseña...',
-      });
-      await loading.present();
+      console.log('[ResetPasswordPage.onSubmit] Formulario válido');
+      
+      // Usar flag isSubmitting en lugar de LoadingController
+      this.isSubmitting = true;
+      this.cdr.detectChanges();
+      console.log('[ResetPasswordPage.onSubmit] Flag isSubmitting activado');
 
-      const { password } = this.resetForm.value;
+      try {
+        const { password } = this.resetForm.value;
+        console.log('[ResetPasswordPage.onSubmit] Actualizando contraseña');
 
-      this.authService.resetPassword(this.email, this.token, password).subscribe({
-        next: async () => {
-          await loading.dismiss();
-          const alert = await this.alertController.create({
-            header: '¡Éxito!',
-            message: 'Tu contraseña ha sido actualizada correctamente.',
-            buttons: [
-              {
-                text: 'OK',
-                handler: () => {
-                  this.router.navigate(['/login']);
+        this.authService.resetPassword(this.email, this.token, password).subscribe({
+          next: async (result) => {
+            console.log('[ResetPasswordPage.onSubmit] Contraseña actualizada exitosamente');
+            this.isSubmitting = false;
+            this.cdr.detectChanges();
+            
+            const alert = await this.alertController.create({
+              header: '¡Éxito!',
+              message: 'Tu contraseña ha sido actualizada correctamente.',
+              buttons: [
+                {
+                  text: 'OK',
+                  handler: () => {
+                    this.router.navigate(['/login'], { replaceUrl: true });
+                  },
                 },
-              },
-            ],
-          });
-          await alert.present();
-        },
-        error: async (error: any) => {
-          await loading.dismiss();
-          const alert = await this.alertController.create({
-            header: 'Error',
-            message: error.message || 'No se pudo actualizar la contraseña',
-            buttons: ['OK'],
-          });
-          await alert.present();
-        },
-      });
+              ],
+            });
+            await alert.present();
+          },
+          error: async (error: any) => {
+            console.error('[ResetPasswordPage.onSubmit] Error:', error);
+            this.isSubmitting = false;
+            this.cdr.detectChanges();
+            
+            const alert = await this.alertController.create({
+              header: 'Error',
+              message: error.message || 'No se pudo actualizar la contraseña',
+              buttons: ['OK'],
+            });
+            await alert.present();
+          },
+        });
+      } catch (error: any) {
+        console.error('[ResetPasswordPage.onSubmit] Error durante el proceso:', error);
+        this.isSubmitting = false;
+        this.cdr.detectChanges();
+        
+        const alert = await this.alertController.create({
+          header: 'Error',
+          message: error.message || 'Ocurrió un error inesperado',
+          buttons: ['OK'],
+        });
+        await alert.present();
+      }
     }
   }
 
