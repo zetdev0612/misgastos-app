@@ -3,6 +3,7 @@ import { Transaccion } from '../models/transaccion.model';
 import { Balance } from '../models/balance.model';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { Auth } from './auth';
+import { Preferences } from '@capacitor/preferences';
 
 @Injectable({
   providedIn: 'root',
@@ -12,46 +13,53 @@ export class TransaccionService {
   transacciones = this._transacciones.asObservable();
 
   constructor(private authService: Auth) {
-    // Cargar transacciones desde localStorage si existen
-    const saved = localStorage.getItem('transacciones');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as Transaccion[];
+    // Cargar transacciones desde Preferences si existen
+    this.cargarTransacciones();
+  }
+
+  private async cargarTransacciones() {
+    try {
+      const result = await Preferences.get({ key: 'transacciones' });
+      if (result.value) {
+        const parsed = JSON.parse(result.value) as Transaccion[];
         // Restaurar fechas como objetos Date
         const restored = parsed.map(t => ({ ...t, fecha: new Date(t.fecha) }));
         this._transacciones.next(restored);
-      } catch (e) {
-        console.warn('No se pudieron cargar las transacciones guardadas:', e);
       }
+    } catch (e) {
+      console.warn('No se pudieron cargar las transacciones guardadas:', e);
     }
   }
 
-  private persist() {
+  private async persist() {
     try {
-      localStorage.setItem('transacciones', JSON.stringify(this._transacciones.getValue()));
+      await Preferences.set({
+        key: 'transacciones',
+        value: JSON.stringify(this._transacciones.getValue())
+      });
     } catch (e) {
-      console.warn('Error guardando transacciones en localStorage', e);
+      console.warn('Error guardando transacciones en Preferences', e);
     }
   }
 
   // Método para refrescar las transacciones cuando un usuario inicia sesión
-  refrescarTransacciones() {
-    const transactionsData = localStorage.getItem('transacciones');
-    if (transactionsData) {
-      try {
-        const parsed = JSON.parse(transactionsData) as Transaccion[];
+  async refrescarTransacciones() {
+    try {
+      const result = await Preferences.get({ key: 'transacciones' });
+      if (result.value) {
+        const parsed = JSON.parse(result.value) as Transaccion[];
         const restored = parsed.map(t => ({ ...t, fecha: new Date(t.fecha) }));
         this._transacciones.next(restored);
         console.log('Transacciones refrescadas:', restored.length);
-      } catch (e) {
-        console.warn('Error al refrescar transacciones:', e);
       }
+    } catch (e) {
+      console.warn('Error al refrescar transacciones:', e);
     }
   }
 
-  getTransacciones(): Transaccion[] {
+  async getTransacciones(): Promise<Transaccion[]> {
     // Retornar solo las transacciones del usuario actual
-    const usuarioId = this.authService.getCurrentUserId();
+    const usuarioId = await this.authService.getCurrentUserId();
     const todas = this._transacciones.getValue();
     
     if (!usuarioId) {
@@ -80,44 +88,69 @@ export class TransaccionService {
   }
 
   agregarTransaccion(transaccion: Transaccion): Observable<Transaccion> {
-    const id = transaccion.id ?? Date.now().toString();
-    const usuarioId = this.authService.getCurrentUserId() || undefined;
-    const nueva: Transaccion = { ...transaccion, id, usuarioId };
-    // Usar getTodasLasTransacciones para mantener todas las transacciones globales
-    const actuales = [nueva, ...this.getTodasLasTransacciones()];
-    this._transacciones.next(actuales);
-    this.persist();
-    return of(nueva);
+    return new Observable<Transaccion>((subscriber) => {
+      setTimeout(async () => {
+        try {
+          const id = transaccion.id ?? Date.now().toString();
+          const usuarioId = await this.authService.getCurrentUserId() || undefined;
+          const nueva: Transaccion = { ...transaccion, id, usuarioId };
+          // Usar getTodasLasTransacciones para mantener todas las transacciones globales
+          const actuales = [nueva, ...this.getTodasLasTransacciones()];
+          this._transacciones.next(actuales);
+          await this.persist();
+          subscriber.next(nueva);
+        } catch (e) {
+          subscriber.error(e);
+        }
+      }, 0);
+    });
   }
 
   editarTransaccion(id: string, data: Partial<Transaccion>): Observable<Transaccion> {
-    const actuales = [...this.getTodasLasTransacciones()];
-    const idx = actuales.findIndex(t => t.id === id);
-    if (idx === -1) {
-      return throwError(() => new Error('Transacción no encontrada'));
-    }
+    return new Observable<Transaccion>((subscriber) => {
+      setTimeout(async () => {
+        try {
+          const actuales = [...this.getTodasLasTransacciones()];
+          const idx = actuales.findIndex(t => t.id === id);
+          if (idx === -1) {
+            subscriber.error(new Error('Transacción no encontrada'));
+            return;
+          }
 
-    const actualizado: Transaccion = { ...actuales[idx], ...data } as Transaccion;
-    // Asegurar que la fecha sea Date
-    if (actualizado.fecha) {
-      actualizado.fecha = new Date(actualizado.fecha as any);
-    }
+          const actualizado: Transaccion = { ...actuales[idx], ...data } as Transaccion;
+          // Asegurar que la fecha sea Date
+          if (actualizado.fecha) {
+            actualizado.fecha = new Date(actualizado.fecha as any);
+          }
 
-    actuales[idx] = actualizado;
-    this._transacciones.next(actuales);
-    this.persist();
-    return of(actualizado);
+          actuales[idx] = actualizado;
+          this._transacciones.next(actuales);
+          await this.persist();
+          subscriber.next(actualizado);
+        } catch (e) {
+          subscriber.error(e);
+        }
+      }, 0);
+    });
   }
 
   eliminarTransaccion(id: string): Observable<void> {
-    const actuales = this.getTodasLasTransacciones().filter(t => t.id !== id);
-    this._transacciones.next(actuales);
-    this.persist();
-    return of(void 0);
+    return new Observable<void>((subscriber) => {
+      setTimeout(async () => {
+        try {
+          const actuales = this.getTodasLasTransacciones().filter(t => t.id !== id);
+          this._transacciones.next(actuales);
+          await this.persist();
+          subscriber.next();
+        } catch (e) {
+          subscriber.error(e);
+        }
+      }, 0);
+    });
   }
 
-  getBalance(period?: 'dia' | 'semana' | 'mes'): Balance {
-    let trans = this.getTransacciones();
+  async getBalance(period?: 'dia' | 'semana' | 'mes'): Promise<Balance> {
+    let trans = await this.getTransacciones();
 
     if (period) {
       const ahora = new Date();
@@ -140,16 +173,16 @@ export class TransaccionService {
           fechaInicio = new Date(0);
       }
 
-      trans = trans.filter(t => new Date(t.fecha) >= fechaInicio);
+      trans = trans.filter((t: Transaccion) => new Date(t.fecha) >= fechaInicio);
     }
 
     const totalIngresos = trans
-      .filter(t => t.tipo === 'ingreso')
-      .reduce((s, t) => s + (t.monto || 0), 0);
+      .filter((t: Transaccion) => t.tipo === 'ingreso')
+      .reduce((s: number, t: Transaccion) => s + (t.monto || 0), 0);
 
     const totalGastos = trans
-      .filter(t => t.tipo === 'gasto')
-      .reduce((s, t) => s + (t.monto || 0), 0);
+      .filter((t: Transaccion) => t.tipo === 'gasto')
+      .reduce((s: number, t: Transaccion) => s + (t.monto || 0), 0);
 
     return {
       totalIngresos,

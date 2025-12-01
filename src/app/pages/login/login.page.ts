@@ -7,6 +7,7 @@ import { TransaccionService } from '../../services/transaccion';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Preferences } from '@capacitor/preferences';
 
 @Component({
   selector: 'app-login',
@@ -31,6 +32,12 @@ export class LoginPage implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef
   ) {
     console.log('LoginPage constructor initialized');
+    // Inicializar el formulario de forma síncrona para que esté listo
+    this.loginForm = this.formBuilder.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      recordar: [false]
+    });
   }
 
   ngOnInit() {
@@ -38,22 +45,27 @@ export class LoginPage implements OnInit, AfterViewInit {
     // Limpiar estado previo de navegación
     document.body.classList.remove('page-loaded');
     
-    // Verificar si ya está autenticado
-    if (this.authService.currentUserValue()) {
-      console.log('Usuario ya autenticado, navegando a /home');
-      this.router.navigate(['/home']);
-      return;
+    // Cargar email recordado de forma asincrónica
+    this.loadRecordarEmail();
+  }
+
+  private async loadRecordarEmail() {
+    try {
+      const result = await Preferences.get({ key: 'recordarUsuario' });
+      const recordarEmail = result.value || '';
+      
+      if (recordarEmail) {
+        // Solo actualizar los campos si existe un email recordado
+        this.loginForm.patchValue({
+          email: recordarEmail,
+          recordar: true
+        });
+        console.log('Email recordado cargado:', recordarEmail);
+      }
+      console.log('Formulario listo');
+    } catch (e) {
+      console.warn('Error cargando email guardado:', e);
     }
-
-    const recordarEmail = localStorage.getItem('recordarUsuario');
-    
-    this.loginForm = this.formBuilder.group({
-      email: [recordarEmail || '', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      recordar: [!!recordarEmail]
-    });
-
-    console.log('Formulario inicializado');
   }
 
   ngAfterViewInit() {
@@ -98,26 +110,25 @@ export class LoginPage implements OnInit, AfterViewInit {
         
         // Refrescar las transacciones después del login
         console.log('Refrescando transacciones para el usuario autenticado');
-        this.transaccionService.refrescarTransacciones();
+        await this.transaccionService.refrescarTransacciones();
+        
+        // Esperar un poco para que el observable emita
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         try {
           // Limpiamos cualquier estado anterior
-          window.location.hash = '';
+          document.body.classList.remove('page-loaded');
           
-          // Esperamos un momento para asegurar que el estado se limpie
-          await new Promise(resolve => setTimeout(resolve, 100));
+          console.log('Navegando a /home');
           
-          // Intentamos la navegación normal primero
-          const navigationResult = await this.router.navigate(['/home'], {
-            replaceUrl: true,
-          });
+          // Usar navigate sin replaceUrl para una navegación más limpia
+          await this.router.navigate(['/home']);
           
-          console.log('Navegación result:', navigationResult);
+          // Forzar una recarga para asegurar que se renderiza correctamente
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
           
-          if (!navigationResult) {
-            console.log('Navegación fallida, usando fallback');
-            window.location.href = '/home';
-          }
         } catch (err) {
           console.error('Error en la navegación:', err);
           window.location.href = '/home';

@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit } from '
 import { Router } from '@angular/router';
 import { AlertController, ModalController, ToastController, Platform } from '@ionic/angular';
 import { Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
+import { from } from 'rxjs';
 import { Auth } from '../../services/auth';
 import { TransaccionService } from '../../services/transaccion';
 import { CategoriaService } from '../../services/categoria';
@@ -79,48 +80,16 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     console.log('HomePage: ngOnInit iniciado');
 
-    // Registrar cuando la plataforma está lista
-    const readySub = this.platform.ready().then(() => {
-      console.log('Platform ready');
-      this.cargarTransacciones();
-    });
-
+    // Registrar cuando la plataforma se reanuda
     const resumeSub = this.platform.resume.subscribe(() => {
       console.log('App resumed');
       this.cargarTransacciones();
     });
 
-    // Suscribirse al observable de transacciones filtrando por usuario
-    const sub = this.transaccionService.transacciones
-      .pipe(
-        map((transacciones) => {
-          // Filtrar solo las transacciones del usuario actual
-          const usuarioId = this.authService.getCurrentUserId();
-          if (!usuarioId) {
-            console.warn('No hay usuario autenticado en HomePage');
-            return [];
-          }
-          const filtradas = transacciones.filter(t => t.usuarioId === usuarioId);
-          console.log(`HomePage: Recibidas ${transacciones.length} transacciones, filtradas a ${filtradas.length} para usuario ${usuarioId}`);
-          return filtradas;
-        })
-      )
-      .subscribe(
-        (transacciones) => {
-          console.log('HomePage: Actualizando transacciones');
-          this.transacciones = transacciones.sort(
-            (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-          );
-          this.aplicarFiltros();
-          this.actualizarBalance();
+    // Cargar transacciones una sola vez al iniciar
+    this.cargarTransacciones();
 
-          if (this.viewInitialized) {
-            this.cdr.detectChanges();
-          }
-        }
-      );
-
-    this.subscriptions.push(sub, resumeSub);
+    this.subscriptions.push(resumeSub);
   }
 
   ngAfterViewInit() {
@@ -139,9 +108,11 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   cargarTransacciones() {
-    this.transacciones = this.transaccionService.getTransacciones();
-    this.aplicarFiltros();
-    this.actualizarBalance();
+    this.transaccionService.getTransacciones().then((transacciones) => {
+      this.transacciones = transacciones;
+      this.aplicarFiltros();
+      this.actualizarBalance();
+    });
   }
 
   aplicarFiltros() {
@@ -184,10 +155,22 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     this.transaccionesFiltradas = resultado;
   }
 
-  actualizarBalance() {
-    this.balance = this.transaccionService.getBalance(
-      this.periodo === 'todo' ? undefined : this.periodo
-    );
+  async actualizarBalance() {
+    // Calcular balance basado en las transacciones filtradas locales
+    // Esto es más rápido que llamar al servicio y no depende de Preferences
+    const totalIngresos = this.transaccionesFiltradas
+      .filter((t: Transaccion) => t.tipo === 'ingreso')
+      .reduce((s: number, t: Transaccion) => s + (t.monto || 0), 0);
+
+    const totalGastos = this.transaccionesFiltradas
+      .filter((t: Transaccion) => t.tipo === 'gasto')
+      .reduce((s: number, t: Transaccion) => s + (t.monto || 0), 0);
+
+    this.balance = {
+      totalIngresos,
+      totalGastos,
+      balance: totalIngresos - totalGastos,
+    };
   }
 
   onBuscar(event: any) {
@@ -214,12 +197,25 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
     const { data } = await modal.onWillDismiss();
     if (data?.transaccion) {
+      // Agregar a la lista local inmediatamente
+      const nuevaTransaccion = {
+        ...data.transaccion,
+        id: data.transaccion.id ?? Date.now().toString()
+      };
+      this.transacciones = [nuevaTransaccion, ...this.transacciones];
+      this.aplicarFiltros();
+      await this.actualizarBalance();
+      this.cdr.detectChanges();
+      
+      // Guardar en background
       this.transaccionService.agregarTransaccion(data.transaccion).subscribe({
         next: () => {
           this.mostrarToast('Transacción agregada exitosamente');
         },
         error: (error) => {
           this.mostrarError('Error al agregar transacción');
+          // Recargar si hay error
+          this.cargarTransacciones();
         },
       });
     }
@@ -239,6 +235,16 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
     const { data } = await modal.onWillDismiss();
     if (data?.transaccion && transaccion.id) {
+      // Actualizar en la lista local inmediatamente
+      const idx = this.transacciones.findIndex(t => t.id === transaccion.id);
+      if (idx !== -1) {
+        this.transacciones[idx] = { ...this.transacciones[idx], ...data.transaccion };
+        this.aplicarFiltros();
+        await this.actualizarBalance();
+        this.cdr.detectChanges();
+      }
+      
+      // Guardar en background
       this.transaccionService
         .editarTransaccion(transaccion.id, data.transaccion)
         .subscribe({
@@ -247,6 +253,8 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
           },
           error: () => {
             this.mostrarError('Error al actualizar transacción');
+            // Recargar si hay error
+            this.cargarTransacciones();
           },
         });
     }
@@ -264,8 +272,15 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
         {
           text: 'Eliminar',
           role: 'destructive',
-          handler: () => {
+          handler: async () => {
             if (transaccion.id) {
+              // Eliminar de la lista local inmediatamente
+              this.transacciones = this.transacciones.filter(t => t.id !== transaccion.id);
+              this.aplicarFiltros();
+              await this.actualizarBalance();
+              this.cdr.detectChanges();
+              
+              // Guardar en background
               this.transaccionService
                 .eliminarTransaccion(transaccion.id)
                 .subscribe({
@@ -274,6 +289,8 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
                   },
                   error: () => {
                     this.mostrarError('Error al eliminar transacción');
+                    // Recargar si hay error
+                    this.cargarTransacciones();
                   },
                 });
             }
@@ -297,7 +314,23 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
         {
           text: 'Cerrar Sesión',
           handler: async () => {
-            this.authService.logout();
+            // Limpiar estado local
+            this.transacciones = [];
+            this.transaccionesFiltradas = [];
+            this.balance = { totalIngresos: 0, totalGastos: 0, balance: 0 };
+
+            // Esperar a que se complete el logout
+            await new Promise<void>((resolve) => {
+              this.authService.logout().subscribe({
+                next: () => {
+                  resolve();
+                },
+                error: (err) => {
+                  console.error('Error en logout:', err);
+                  resolve();
+                }
+              });
+            });
 
             // Navegación robusta con fallback
             try {
