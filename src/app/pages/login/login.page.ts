@@ -186,6 +186,18 @@ export class LoginPage implements OnInit, AfterViewInit {
 
   irARecuperar() {
     console.log('irARecuperar');
-    this.router.navigate(['/recuperar-password']);
+    // Navegación robusta a recuperar contraseña
+    (async () => {
+      try {
+        await new Promise(res => setTimeout(res, 50));
+        const result = await this.router.navigate(['/recuperar-password'], { replaceUrl: true });
+        if (!result) {
+          window.location.href = '/recuperar-password';
+        }
+      } catch (err) {
+        console.error('Error al navegar a recuperar-password:', err);
+        window.location.href = '/recuperar-password';
+      }
+    })();
   }
 }
