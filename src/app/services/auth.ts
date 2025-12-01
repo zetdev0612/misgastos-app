@@ -7,11 +7,28 @@ import { Preferences } from '@capacitor/preferences';
 })
 export class Auth {
   recuperarPassword(email: string): Observable<any> {
-    if (email === 'test@example.com') {
-      return of({ success: true });
-    } else {
-      return throwError(() => new Error('No se encontró una cuenta con ese correo'));
-    }
+    return new Observable<any>((subscriber) => {
+      setTimeout(async () => {
+        try {
+          const result = await Preferences.get({ key: 'registeredUsers' });
+          const registeredUsers = result.value ? JSON.parse(result.value) : [];
+          
+          // Buscar si el usuario existe
+          const userExists = registeredUsers.some((u: any) => u.email === email) || email === 'test@example.com';
+          
+          if (userExists) {
+            // En una app real, aquí enviarías un correo
+            // Por ahora, simulamos que se envió el enlace
+            console.log('Enlace de recuperación enviado a:', email);
+            subscriber.next({ success: true, message: 'Enlace de recuperación enviado' });
+          } else {
+            subscriber.error(new Error('No se encontró una cuenta con ese correo'));
+          }
+        } catch (error) {
+          subscriber.error(new Error('Error al procesar la solicitud'));
+        }
+      }, 500);
+    });
   }
 
 
