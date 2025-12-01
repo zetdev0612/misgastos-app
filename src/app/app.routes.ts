@@ -23,6 +23,11 @@ export const routes: Routes = [
     canActivate: [loginGuard]
   },
   {
+    path: 'reset-password',
+    loadComponent: () => import('./pages/reset-password/reset-password.page').then(m => m.ResetPasswordPage),
+    canActivate: [loginGuard]
+  },
+  {
     path: 'home',
     loadComponent: () => import('./pages/home/home.page').then(m => m.HomePage),
     canActivate: [authGuard]

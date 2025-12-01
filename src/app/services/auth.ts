@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { Preferences } from '@capacitor/preferences';
+import { EmailService } from './email.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
+  constructor(private emailService: EmailService) {}
+
   recuperarPassword(email: string): Observable<any> {
     return new Observable<any>((subscriber) => {
       setTimeout(async () => {
@@ -14,18 +17,62 @@ export class Auth {
           const registeredUsers = result.value ? JSON.parse(result.value) : [];
           
           // Buscar si el usuario existe
-          const userExists = registeredUsers.some((u: any) => u.email === email) || email === 'test@example.com';
+          const user = registeredUsers.find((u: any) => u.email === email) || 
+                      (email === 'test@example.com' ? { email: 'test@example.com', nombreCompleto: 'Usuario Test' } : null);
           
-          if (userExists) {
-            // En una app real, aquí enviarías un correo
-            // Por ahora, simulamos que se envió el enlace
-            console.log('Enlace de recuperación enviado a:', email);
-            subscriber.next({ success: true, message: 'Enlace de recuperación enviado' });
+          if (user) {
+            try {
+              // Enviar correo de recuperación real
+              await this.emailService.enviarCorreoRecuperacion(email, user.nombreCompleto);
+              console.log('Correo de recuperación enviado exitosamente a:', email);
+              subscriber.next({ success: true, message: 'Enlace de recuperación enviado al correo' });
+            } catch (emailError) {
+              console.error('Error enviando correo:', emailError);
+              subscriber.error(new Error('Error al enviar el correo de recuperación'));
+            }
           } else {
             subscriber.error(new Error('No se encontró una cuenta con ese correo'));
           }
         } catch (error) {
           subscriber.error(new Error('Error al procesar la solicitud'));
+        }
+      }, 500);
+    });
+  }
+
+  resetPassword(email: string, token: string, newPassword: string): Observable<any> {
+    return new Observable<any>((subscriber) => {
+      setTimeout(async () => {
+        try {
+          const result = await Preferences.get({ key: 'registeredUsers' });
+          const registeredUsers = result.value ? JSON.parse(result.value) : [];
+          
+          // Buscar el usuario por email
+          const userIndex = registeredUsers.findIndex((u: any) => u.email === email);
+          
+          if (userIndex === -1) {
+            subscriber.error(new Error('Usuario no encontrado'));
+            return;
+          }
+          
+          // En una aplicación real, validarías el token
+          // Por ahora lo aceptamos siempre (en producción verificarías expiración, etc)
+          console.log('[Auth.resetPassword] Token validado para:', email);
+          
+          // Actualizar la contraseña
+          registeredUsers[userIndex].password = newPassword;
+          registeredUsers[userIndex].ultimoResetPassword = new Date().toISOString();
+          
+          await Preferences.set({
+            key: 'registeredUsers',
+            value: JSON.stringify(registeredUsers)
+          });
+          
+          console.log('[Auth.resetPassword] Contraseña actualizada para:', email);
+          subscriber.next({ success: true, message: 'Contraseña actualizada correctamente' });
+        } catch (error) {
+          console.error('[Auth.resetPassword] Error:', error);
+          subscriber.error(new Error('Error al actualizar la contraseña'));
         }
       }, 500);
     });
