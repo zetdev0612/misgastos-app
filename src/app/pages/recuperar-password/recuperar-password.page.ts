@@ -16,6 +16,7 @@ import { CommonModule } from '@angular/common';
 })
 export class RecuperarPasswordPage implements OnInit, AfterViewInit {
   recuperarForm!: FormGroup;
+  isSubmitting = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -46,40 +47,79 @@ export class RecuperarPasswordPage implements OnInit, AfterViewInit {
   }
 
   async onSubmit() {
+    console.log('[RecuperarPasswordPage.onSubmit] Formulario válido:', this.recuperarForm.valid);
+    
     if (this.recuperarForm.valid) {
-      const loading = await this.loadingController.create({
-        message: 'Enviando enlace...',
-        duration: 5000
-      });
-      await loading.present();
+      console.log('[RecuperarPasswordPage.onSubmit] Iniciando envío');
+      
+      // Usar flag isSubmitting en lugar de LoadingController
+      this.isSubmitting = true;
+      this.cdr.detectChanges();
+      console.log('[RecuperarPasswordPage.onSubmit] Flag isSubmitting activado');
 
-      const { email } = this.recuperarForm.value;
+      try {
+        const { email } = this.recuperarForm.value;
+        console.log('[RecuperarPasswordPage.onSubmit] Email a recuperar:', email);
 
-      this.authService.recuperarPassword(email).subscribe({
-        next: async () => {
-          await loading.dismiss();
-          const alert = await this.alertController.create({
-            header: '¡Enviado!',
-            message: 'Hemos enviado un enlace de recuperación a tu correo electrónico.',
-            buttons: [{
-              text: 'OK',
-              handler: () => {
-                this.router.navigate(['/login']);
-              }
-            }]
-          });
-          await alert.present();
-        },
-        error: async (error: any) => {
-          await loading.dismiss();
-          const alert = await this.alertController.create({
-            header: 'Error',
-            message: error.message || 'No se encontró una cuenta con ese correo',
-            buttons: ['OK']
-          });
-          await alert.present();
-        }
+        console.log('[RecuperarPasswordPage.onSubmit] Llamando a authService.recuperarPassword()...');
+        
+        this.authService.recuperarPassword(email).subscribe({
+          next: async (result) => {
+            console.log('[RecuperarPasswordPage.onSubmit] Recuperación exitosa:', result);
+            this.isSubmitting = false;
+            this.cdr.detectChanges();
+            console.log('[RecuperarPasswordPage.onSubmit] Flag isSubmitting desactivado');
+            
+            const alert = await this.alertController.create({
+              header: '¡Enviado!',
+              message: 'Hemos enviado un enlace de recuperación a tu correo electrónico.',
+              buttons: [{
+                text: 'OK',
+                handler: () => {
+                  console.log('[RecuperarPasswordPage.onSubmit] Usuario confirmó. Navegando a /login...');
+                  this.router.navigate(['/login'], { replaceUrl: true });
+                }
+              }]
+            });
+            console.log('[RecuperarPasswordPage.onSubmit] Mostrando alerta de éxito');
+            await alert.present();
+          },
+          error: async (error: any) => {
+            console.error('[RecuperarPasswordPage.onSubmit] Error en recuperación:', error);
+            this.isSubmitting = false;
+            this.cdr.detectChanges();
+            console.log('[RecuperarPasswordPage.onSubmit] Flag isSubmitting desactivado después de error');
+            
+            const alert = await this.alertController.create({
+              header: 'Error',
+              message: error.message || 'No se encontró una cuenta con ese correo',
+              buttons: ['OK']
+            });
+            console.log('[RecuperarPasswordPage.onSubmit] Mostrando alerta de error');
+            await alert.present();
+          }
+        });
+      } catch (error: any) {
+        console.error('[RecuperarPasswordPage.onSubmit] Error durante el proceso:', error);
+        this.isSubmitting = false;
+        this.cdr.detectChanges();
+        
+        const alert = await this.alertController.create({
+          header: 'Error',
+          message: error.message || 'Ocurrió un error inesperado',
+          buttons: ['OK']
+        });
+        console.log('[RecuperarPasswordPage.onSubmit] Mostrando alerta de error del catch');
+        await alert.present();
+      }
+    } else {
+      console.warn('[RecuperarPasswordPage.onSubmit] Formulario inválido');
+      const alert = await this.alertController.create({
+        header: 'Formulario inválido',
+        message: 'Por favor ingresa un correo válido',
+        buttons: ['OK']
       });
+      await alert.present();
     }
   }
 
