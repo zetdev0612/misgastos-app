@@ -43,7 +43,11 @@
               <ion-checkbox slot="start" formControlName="recordar"></ion-checkbox>
               <span>Recordarme</span>
             </label>
-            <button type="button" class="link-btn" (click)="irARegistro()">¿No tienes cuenta?</button>
+            <button type="button" class="link-btn" (click)="irARecuperar()">¿Olvidaste tu contraseña?</button>
+          </div>
+
+          <div class="row-between">
+            <button type="button" class="link-btn" (click)="irARegistro()" style="width: 100%; text-align: center;">¿No tienes cuenta?</button>
           </div>
 
           <button type="submit" class="btn" [disabled]="isLoading">
