@@ -21,7 +21,7 @@
         <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" novalidate>
           <div class="input-group" title="Nombre completo">
             <div class="icon"><ion-icon name="person-outline"></ion-icon></div>
-            <input type="text" formControlName="nombreCompleto" placeholder="Nombre completo" aria-label="Nombre completo" required />
+            <input type="text" formControlName="nombreCompleto" placeholder="Nombre completo" aria-label="Nombre completo" required [disabled]="isSubmitting" />
           </div>
           <ion-text color="danger" *ngIf="registroForm.get('nombreCompleto')?.invalid && registroForm.get('nombreCompleto')?.touched">
             <small class="error-text">Mínimo 3 caracteres</small>
@@ -29,7 +29,7 @@
 
           <div class="input-group" title="Correo electrónico">
             <div class="icon"><ion-icon name="mail-outline"></ion-icon></div>
-            <input type="email" formControlName="email" placeholder="Correo electrónico" aria-label="Correo electrónico" required />
+            <input type="email" formControlName="email" placeholder="Correo electrónico" aria-label="Correo electrónico" required [disabled]="isSubmitting" />
           </div>
           <ion-text color="danger" *ngIf="registroForm.get('email')?.invalid && registroForm.get('email')?.touched">
             <small class="error-text">Email inválido</small>
@@ -37,8 +37,8 @@
 
           <div class="input-group" title="Contraseña">
             <div class="icon"><ion-icon name="lock-closed-outline"></ion-icon></div>
-            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Contraseña" aria-label="Contraseña" required />
-            <button type="button" class="icon-btn" (click)="togglePassword('password')">
+            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Contraseña" aria-label="Contraseña" required [disabled]="isSubmitting" />
+            <button type="button" class="icon-btn" (click)="togglePassword('password')" [disabled]="isSubmitting">
               <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </button>
           </div>
@@ -48,8 +48,8 @@
 
           <div class="input-group" title="Confirmar contraseña">
             <div class="icon"><ion-icon name="lock-closed-outline"></ion-icon></div>
-            <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmarPassword" placeholder="Confirmar contraseña" aria-label="Confirmar contraseña" required />
-            <button type="button" class="icon-btn" (click)="togglePassword('confirm')">
+            <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmarPassword" placeholder="Confirmar contraseña" aria-label="Confirmar contraseña" required [disabled]="isSubmitting" />
+            <button type="button" class="icon-btn" (click)="togglePassword('confirm')" [disabled]="isSubmitting">
               <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </button>
           </div>
@@ -59,13 +59,13 @@
 
           <div class="row-between">
             <label style="display:flex;align-items:center;gap:8px;font-size:0.95rem;color:#475569;">
-              <ion-checkbox slot="start" formControlName="aceptaTerminos"></ion-checkbox>
+              <ion-checkbox slot="start" formControlName="aceptaTerminos" [disabled]="isSubmitting"></ion-checkbox>
               <span>Acepto términos</span>
             </label>
-            <button type="button" class="link-btn" (click)="volverAlLogin()">¿Ya tienes cuenta?</button>
+            <button type="button" class="link-btn" (click)="volverAlLogin()" [disabled]="isSubmitting">¿Ya tienes cuenta?</button>
           </div>
 
-          <button type="submit" class="btn">Registrarse</button>
+          <button type="submit" class="btn" [disabled]="isSubmitting || !registroForm.valid">Registrarse</button>
 
           <div class="small">Al registrarte aceptas nuestras políticas.</div>
         </form>
