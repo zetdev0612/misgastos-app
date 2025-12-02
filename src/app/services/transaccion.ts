@@ -113,11 +113,27 @@ export class TransaccionService {
           const actuales = [...this.getTodasLasTransacciones()];
           const idx = actuales.findIndex(t => t.id === id);
           if (idx === -1) {
+            console.error('Transacción no encontrada con ID:', id);
+            console.error('IDs disponibles:', actuales.map(t => t.id));
             subscriber.error(new Error('Transacción no encontrada'));
             return;
           }
 
-          const actualizado: Transaccion = { ...actuales[idx], ...data } as Transaccion;
+          // Merging data, preservando usuarioId existente
+          const actualizado: Transaccion = { 
+            ...actuales[idx], 
+            ...data,
+            id: actuales[idx].id, // Asegurar que se mantiene el ID
+            usuarioId: actuales[idx].usuarioId // Preservar usuarioId
+          } as Transaccion;
+          
+          // Validar campos requeridos después del merge
+          if (!actualizado.descripcion || !actualizado.tipo || !actualizado.categoriaId || actualizado.monto === undefined || actualizado.monto === null) {
+            console.error('Datos incompletos después del merge:', actualizado);
+            subscriber.error(new Error('Datos incompletos: descripción, tipo, categoría y monto son requeridos'));
+            return;
+          }
+          
           // Asegurar que la fecha sea Date
           if (actualizado.fecha) {
             actualizado.fecha = new Date(actualizado.fecha as any);
@@ -128,6 +144,7 @@ export class TransaccionService {
           await this.persist();
           subscriber.next(actualizado);
         } catch (e) {
+          console.error('Error al editar transacción:', e);
           subscriber.error(e);
         }
       }, 0);
