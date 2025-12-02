@@ -4,14 +4,15 @@ Una aplicación móvil desarrollada con Ionic y Angular para gestionar gastos e 
 
 ## 📱 Características
 
-- Registro de ingresos y gastos
-- Categorización de transacciones
-- Balance general y filtrado por períodos
-- Búsqueda de transacciones
-- Interfaz moderna con diseño glassmórfico
-- Persistencia local de datos
-- Autenticación de usuarios
-- Diseño responsive
+- ✅ Registro de ingresos y gastos
+- ✅ Categorización de transacciones
+- ✅ Balance general y filtrado por períodos
+- ✅ Búsqueda de transacciones
+- ✅ Interfaz moderna con diseño glassmórfico
+- ✅ Persistencia local de datos
+- ✅ Autenticación de usuarios con EmailJS
+- ✅ Sistema de recuperación de contraseña
+- ✅ Diseño responsive
 
 ## 🚀 Inicio Rápido
 
@@ -56,11 +57,14 @@ Para probar la aplicación, puedes usar las siguientes credenciales:
 
 ## 🛠️ Tecnologías Utilizadas
 
-- Ionic Framework 7
-- Angular 16
-- TypeScript
-- SCSS
-- LocalStorage para persistencia de datos
+- **Ionic Framework 8** - Framework móvil
+- **Angular 20** - Framework front-end
+- **TypeScript** - Lenguaje de programación
+- **SCSS** - Estilos avanzados
+- **Capacitor 7** - Acceso a APIs nativas
+- **LocalStorage/Preferences** - Persistencia de datos local
+- **EmailJS** - Servicio de correos para recuperación de contraseña
+- **RxJS** - Manejo reactivo de estado
 
 ## 📱 Capacidades
 
@@ -72,6 +76,29 @@ La aplicación permite:
 - Filtrar por períodos (día, semana, mes, todo)
 - Buscar transacciones
 - Editar y eliminar movimientos
+
+## 📁 Estructura del Proyecto
+
+```
+src/app/
+├── pages/                    # Páginas principales
+│   ├── login/               # Página de inicio de sesión
+│   ├── registro/            # Página de registro
+│   ├── recuperar-password/  # Recuperación de contraseña
+│   ├── reset-password/      # Reseteo de contraseña
+│   ├── home/                # Dashboard principal
+│   └── categorias/          # Gestión de categorías
+├── services/                # Servicios
+│   ├── auth.ts             # Autenticación
+│   ├── categoria.ts        # Gestión de categorías
+│   ├── transaccion.ts      # Gestión de transacciones
+│   └── email.service.ts    # Envío de correos
+├── guards/                  # Guards de rutas
+│   └── auth.guard.ts       # Protección de rutas
+├── models/                  # Modelos de datos
+├── components/              # Componentes reutilizables
+└── config/                  # Configuración
+```
 
 ## 💅 Diseño
 
@@ -85,13 +112,27 @@ La interfaz utiliza un moderno diseño glassmórfico con:
 
 ## 🔄 Estado del Proyecto
 
-El proyecto está en desarrollo activo. Próximas características:
+El proyecto está completado con todas las funcionalidades principales implementadas:
 
+- [x] Autenticación de usuarios
+- [x] Sistema de recuperación de contraseña
+- [x] Registro de ingresos y gastos
+- [x] Categorización de transacciones
+- [x] Balance general
+- [x] Filtrado por períodos
+- [x] Búsqueda de transacciones
+- [x] Gestión de categorías
+- [x] Persistencia de datos local
+- [x] Diseño glassmórfico
+- [x] Interfaz responsive
+
+### Futuras mejoras:
 - [ ] Sincronización en la nube
-- [ ] Reportes y estadísticas
+- [ ] Reportes y estadísticas avanzadas
 - [ ] Modo oscuro
-- [ ] Notificaciones
-- [ ] Exportación de datos
+- [ ] Notificaciones push
+- [ ] Exportación de datos (CSV, PDF)
+- [ ] Gráficos y visualización de datos
 
 ## 📄 Licencia
 
