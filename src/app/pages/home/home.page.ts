@@ -197,18 +197,21 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
     const { data } = await modal.onWillDismiss();
     if (data?.transaccion) {
-      // Agregar a la lista local inmediatamente
+      // Generar ID UNA SOLA VEZ aquí
+      const idNuevo = data.transaccion.id || Date.now().toString();
       const nuevaTransaccion = {
         ...data.transaccion,
-        id: data.transaccion.id ?? Date.now().toString()
+        id: idNuevo
       };
+      
+      // Agregar a la lista local
       this.transacciones = [nuevaTransaccion, ...this.transacciones];
       this.aplicarFiltros();
       await this.actualizarBalance();
       this.cdr.detectChanges();
       
-      // Guardar en background
-      this.transaccionService.agregarTransaccion(data.transaccion).subscribe({
+      // Guardar en background con el MISMO ID
+      this.transaccionService.agregarTransaccion(nuevaTransaccion).subscribe({
         next: () => {
           this.mostrarToast('Transacción agregada exitosamente');
         },
@@ -235,10 +238,16 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
     const { data } = await modal.onWillDismiss();
     if (data?.transaccion && transaccion.id) {
+      // Asegurar que el ID se preserve en los datos a enviar
+      const datosActualizados = {
+        ...data.transaccion,
+        id: transaccion.id
+      };
+
       // Actualizar en la lista local inmediatamente
       const idx = this.transacciones.findIndex(t => t.id === transaccion.id);
       if (idx !== -1) {
-        this.transacciones[idx] = { ...this.transacciones[idx], ...data.transaccion };
+        this.transacciones[idx] = { ...this.transacciones[idx], ...datosActualizados };
         this.aplicarFiltros();
         await this.actualizarBalance();
         this.cdr.detectChanges();
@@ -246,13 +255,14 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
       
       // Guardar en background
       this.transaccionService
-        .editarTransaccion(transaccion.id, data.transaccion)
+        .editarTransaccion(transaccion.id, datosActualizados)
         .subscribe({
           next: () => {
             this.mostrarToast('Transacción actualizada exitosamente');
           },
-          error: () => {
-            this.mostrarError('Error al actualizar transacción');
+          error: (err) => {
+            console.error('Error al actualizar transacción:', err);
+            this.mostrarError('Error al actualizar: ' + (err?.message || 'Error desconocido'));
             // Recargar si hay error
             this.cargarTransacciones();
           },
